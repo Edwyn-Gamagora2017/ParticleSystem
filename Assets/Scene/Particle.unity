@@ -140,7 +140,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PhysicsObjPrefab: {fileID: 1434418601584960, guid: 813cd431bd740cd429fc4535ac0a3368,
     type: 2}
-  createObjects: 500
+  createObjects: 100
 --- !u!23 &54119596
 MeshRenderer:
   m_ObjectHideFlags: 0
@@ -200,7 +200,7 @@ Transform:
   m_GameObject: {fileID: 54119594}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 5, y: 5, z: 5}
+  m_LocalScale: {x: 3, y: 5, z: 5}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2

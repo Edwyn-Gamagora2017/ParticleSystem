@@ -16,7 +16,7 @@ public class PhysicsObject : AbstractObject {
 	public static Vector3 gravityAcc = new Vector3(0f,-5f,0f);
 
 	Vector3 reboundForceAcc;
-	float reboundFactor = 1.5f;
+	float reboundFactor = 1.1f;
 
 	public PhysicsObject( float mass, Vector3 startPosition, Vector3 startSpeed, CubeStaticObject boundingBox )
 	: base( startPosition ){
@@ -59,11 +59,17 @@ public class PhysicsObject : AbstractObject {
 		// Collision to world
 		if( newPosition.x < -world.WorldDimension.x/2f || newPosition.x > world.WorldDimension.x/2f ){
 			collisionTrigger = true;
-			this.reboundForceAcc += new Vector3( -this.speed.x/(reboundFactor*deltaTSeconds), 0,0 );
+
+			//this.reboundForceAcc += new Vector3( -this.speed.x/(reboundFactor*deltaTSeconds), 0,0 );
+			newSpeed = new Vector3( -newSpeed.x, newSpeed.y, newSpeed.z );
+			this.reboundForceAcc += newSpeed/(reboundFactor*deltaTSeconds);
 		}
 		if( newPosition.y < -world.WorldDimension.y/2f || newPosition.y > world.WorldDimension.y/2f ){
 			collisionTrigger = true;
-			this.reboundForceAcc += new Vector3( 0,-this.speed.y/(reboundFactor*deltaTSeconds), 0 );
+
+			//this.reboundForceAcc += new Vector3( 0,-this.speed.y/(reboundFactor*deltaTSeconds), 0 );
+			newSpeed = new Vector3( newSpeed.x, -newSpeed.y, newSpeed.z );
+			this.reboundForceAcc += newSpeed/(reboundFactor*deltaTSeconds);
 		}
 		if( newPosition.z < -world.WorldDimension.z/2f || newPosition.z > world.WorldDimension.z/2f ){
 			collisionTrigger = true;
