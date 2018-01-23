@@ -46,7 +46,7 @@ public class WorldManager : MonoBehaviour {
 			obj.PhysicsObj.setPosition( g.transform.position );
 		}
 
-		hashCapacity = Mathf.Max( objects.Count/20 , 1 );
+		hashCapacity = Mathf.Max( objects.Count/10 , 1 );
 		// Filling hash
 		fillHash( hashCapacity, gridDimension );
 	}
@@ -63,9 +63,6 @@ public class WorldManager : MonoBehaviour {
 }*/
 
 		foreach( PhysicsObjectGraphics obj in objects ){
-			//List<PhysicsObjectGraphics> neighbors = neighborhood( obj.PhysicsObj.getPosition(), hashCapacity, gridDimension, gridDimension.x );
-			//obj.DensityFactor = neighbors.Count/(float)objects.Count;
-
 			obj.DensityFactor = obtainDensity( obj, hashCapacity, gridDimension, gridDimension.x );
 		}
 	}
@@ -102,7 +99,7 @@ public class WorldManager : MonoBehaviour {
 	}
 
 	int getParticleGridPositionHash( Vector3 _objGridPosition, int _hashCapacity ){
-		return Mathf.Abs(Mathf.FloorToInt(_objGridPosition.x+_objGridPosition.y+_objGridPosition.z))%_hashCapacity;
+		return Mathf.Abs(Mathf.FloorToInt(_objGridPosition.x*2+_objGridPosition.y*3+_objGridPosition.z*4))%_hashCapacity;
 	}
 
 	List<PhysicsObjectGraphics> neighborhood( PhysicsObjectGraphics objPOG, int _hashCapacity, Vector3 _gridCubeDimension, float radius ){
@@ -144,13 +141,9 @@ public class WorldManager : MonoBehaviour {
 
 		return dist/(float)neighbors.Count;*/
 		float density = 0;
-		//Debug.Log( neighbors.Count );
 		foreach( PhysicsObjectGraphics neighbor in neighbors ){
 			density += Mathf.Pow( 1f-(( obj.PhysicsObj.getPosition()-neighbor.PhysicsObj.getPosition() ).magnitude/radius), 2f );
-			//Debug.Log( ( obj.getPosition()-neighbor.PhysicsObj.getPosition() ).magnitude );
-			//Debug.Log( ( obj.PhysicsObj.getPosition()-neighbor.PhysicsObj.getPosition() ).magnitude/radius );
 		}
-		//Debug.Log("Density="+Mathf.Sqrt(density) );
 		return Mathf.Sqrt( density );
 	}
 }
