@@ -40,7 +40,7 @@ public class PhysicsObjectGraphics : ObjectGraphics {
 	}
 
 	void Awake(){
-		physicsObj = new PhysicsObject( mass, this.transform.position, new Vector3( Random.Range( -5f, 5f ), 0, 0 ), generateBoundingBox() );
+		physicsObj = new PhysicsObject( mass, this.transform.localScale.x, this.transform.position, new Vector3( Random.Range( -5f, 5f ), 0, 0 ), generateBoundingBox() );
 		//physicsObj = new PhysicsObject( mass, this.transform.position, new Vector3( 4, 0, 0 ), generateBoundingBox() );
 		forces = new List<Vector3>();
 		extraForce = new Vector3(0,0,0);

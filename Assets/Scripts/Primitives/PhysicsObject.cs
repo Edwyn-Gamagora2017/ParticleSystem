@@ -9,18 +9,21 @@ public class PhysicsObject : AbstractObject {
 	Vector3 acceleration;	// m/s2
 
 	float mass;
+	float radius;
 
 	CubeStaticObject boundingBox;
 
 	//public static Vector3 gravityAcc = new Vector3(0f,-9.8f,0f);
 	public static Vector3 gravityAcc = new Vector3(0f,-5f,0f);
 
-	Vector3 reboundForceAcc;
 	float reboundFactor = 1.2f;
+	List<Vector3> internalForces;
+	List<PhysicsObjectGraphics> neighbors;
 
-	public PhysicsObject( float mass, Vector3 startPosition, Vector3 startSpeed, CubeStaticObject boundingBox )
+	public PhysicsObject( float mass, float radius, Vector3 startPosition, Vector3 startSpeed, CubeStaticObject boundingBox )
 	: base( startPosition ){
 		this.mass = mass;
+		this.radius = radius;
 
 		this.position = startPosition;
 		this.speed = startSpeed;
@@ -29,11 +32,12 @@ public class PhysicsObject : AbstractObject {
 
 		this.boundingBox = boundingBox;
 
-		this.reboundForceAcc = new Vector3(0,0,0);
+		internalForces = new List<Vector3>();
+		neighbors = new List<PhysicsObjectGraphics>();
 	}
 
-	public PhysicsObject( float mass, Vector3 startPosition, CubeStaticObject boundingBox )
-		: this( mass, startPosition, new Vector3( 0,0,0 ), boundingBox ){}
+	public PhysicsObject( float mass, float radius, Vector3 startPosition, CubeStaticObject boundingBox )
+		: this( mass, radius, startPosition, new Vector3( 0,0,0 ), boundingBox ){}
 
 	public void evaluate( List<Vector3> forces, float deltaTSeconds, WorldManager world ){
 		// calculate Acceleration
@@ -41,9 +45,12 @@ public class PhysicsObject : AbstractObject {
 		foreach( Vector3 force in forces ){
 			newAcceleration += force;
 		}
-
-		newAcceleration += this.reboundForceAcc*this.mass;
+		foreach( Vector3 force in internalForces ){
+			newAcceleration += force;
+		}
+		internalForces.Clear();
 		newAcceleration /= mass;
+
 		// calculate Speed
 		Vector3 newSpeed = this.speed + newAcceleration*deltaTSeconds;
 		// calculate Position
@@ -55,7 +62,6 @@ public class PhysicsObject : AbstractObject {
 		AbstractObject collisionObj = world.BbTree.collision( futureBoundingBox, this );
 		collisionTrigger = collisionObj != null;*/
 
-		this.reboundForceAcc = new Vector3(0,0,0);
 		// Collision to world
 		if( newPosition.x < -world.WorldDimension.x/2f || newPosition.x > world.WorldDimension.x/2f ){
 			collisionTrigger = true;
@@ -73,6 +79,14 @@ public class PhysicsObject : AbstractObject {
 			newSpeed = new Vector3( newSpeed.x, newSpeed.y, -newSpeed.z );
 		}
 
+		// Collision to other objects
+		/*foreach( PhysicsObjectGraphics neighbor in neighbors ){
+			if( (newPosition - neighbor.PhysicsObj.getPosition()).magnitude < this.radius+neighbor.PhysicsObj.Radius ){
+				// Collision
+				this.internalForces.Add( ((neighbor.PhysicsObj.getSpeed())/(deltaTSeconds*1000f))*neighbor.mass );
+			}
+		}*/
+
 		if( !collisionTrigger ){
 			// Update info : new one
 			this.speed = newSpeed;
@@ -81,7 +95,9 @@ public class PhysicsObject : AbstractObject {
 		}
 		else{
 			// Update info : 0
-			this.reboundForceAcc += newSpeed/(reboundFactor*deltaTSeconds);
+			Vector3 reboundForceAcc = new Vector3(0,0,0);
+			reboundForceAcc += newSpeed/(reboundFactor*deltaTSeconds);
+			internalForces.Add( reboundForceAcc*this.mass );
 			this.speed = new Vector3(0,0,0);
 		}
 	}
@@ -97,6 +113,25 @@ public class PhysicsObject : AbstractObject {
 	}
 	public Vector3 getAcceleration(){
 		return this.acceleration;
+	}
+	public float Mass {
+		get {
+			return mass;
+		}
+	}
+	public float Radius {
+		get {
+			return radius;
+		}
+	}
+
+	public List<PhysicsObjectGraphics> Neighbors {
+		get {
+			return neighbors;
+		}
+		set {
+			neighbors = value;
+		}
 	}
 
 	#region implemented abstract members of AbstractObject
