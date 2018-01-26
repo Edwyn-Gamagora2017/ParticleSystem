@@ -18,9 +18,13 @@ public class PhysicsObject : AbstractObject {
 	//public static Vector3 gravityAcc = new Vector3(0f,-9.8f,0f);
 	public static Vector3 gravityAcc = new Vector3(0f,-5f,0f);
 
-	float reboundFactor = 1.2f;
+	float reboundFactor = 1.5f;
 	List<Vector3> internalForces;
-	List<PhysicsObjectGraphics> neighbors;
+
+	List<PhysicsObjectGraphics> currentNeighbors;
+
+	float densityThreshold =100f;
+	float densityFactor = 0.2f;
 
 	public PhysicsObject( float mass, float radius, Vector3 startPosition, Vector3 startSpeed, CubeStaticObject boundingBox )
 	: base( startPosition ){
@@ -36,7 +40,7 @@ public class PhysicsObject : AbstractObject {
 		this.boundingBox = boundingBox;
 
 		internalForces = new List<Vector3>();
-		neighbors = new List<PhysicsObjectGraphics>();
+		currentNeighbors = new List<PhysicsObjectGraphics>();
 	}
 
 	public PhysicsObject( float mass, float radius, Vector3 startPosition, CubeStaticObject boundingBox )
@@ -58,36 +62,60 @@ public class PhysicsObject : AbstractObject {
 
 		// calculate Speed
 		Vector3 newSpeed = this.speed + newAcceleration*deltaTSeconds;
+
+		// TODO viscosity here
+
 		// calculate Position
 		Vector3 newPosition = this.position + newSpeed*deltaTSeconds;
+		//Vector3 newPosition = this.position + deltaTSeconds*deltaTSeconds*newAcceleration;
+
+		// Internal Repulsion and Attraction
+		Vector3 accumulatedTranslation = new Vector3(0,0,0);
+		float densityStatus = world.obtainP(this,currentNeighbors,2);
+		float densityStatusNear = world.obtainP(this,currentNeighbors,3);
+		foreach( PhysicsObjectGraphics neighbor in currentNeighbors ){
+			accumulatedTranslation += world.densityRelaxation(
+				newPosition,
+				neighbor.PhysicsObj.getPosition(),
+				densityFactor*(densityStatus-densityThreshold),
+				densityFactor*densityStatusNear,
+				deltaTSeconds
+			);
+		}
+		//Debug.Log( accumulatedTranslation );
+		newPosition += accumulatedTranslation;
 
 		// Calculate Collision
 		bool collisionTrigger = false;
-		/*CubeStaticObject futureBoundingBox = new CubeStaticObject( newPosition, this.boundingBox.Width, this.boundingBox.Height, this.boundingBox.Depth );
-		AbstractObject collisionObj = world.BbTree.collision( futureBoundingBox, this );
-		collisionTrigger = collisionObj != null;*/
 
 		// Collision to world
+		Vector3 reboundForceAcc = new Vector3(0,0,0);
 		if( newPosition.x < -world.WorldDimension.x/2f || newPosition.x > world.WorldDimension.x/2f ){
+			reboundForceAcc += new Vector3( -(2*this.temp_speed.x)/(reboundFactor*deltaTSeconds), 0, 0 );
+			newPosition.x = this.position.x;
 			collisionTrigger = true;
-
-			newSpeed = new Vector3( -newSpeed.x, newSpeed.y, newSpeed.z );
 		}
 		if( newPosition.y < -world.WorldDimension.y/2f || newPosition.y > world.WorldDimension.y/2f ){
+			reboundForceAcc += new Vector3( -(0.01f*this.temp_speed.x), -(2f*this.temp_speed.y), 0 )/(reboundFactor*deltaTSeconds);
+			newPosition.y = this.position.y;
 			collisionTrigger = true;
-
-			newSpeed = new Vector3( newSpeed.x, -newSpeed.y, newSpeed.z );
 		}
 		if( newPosition.z < -world.WorldDimension.z/2f || newPosition.z > world.WorldDimension.z/2f ){
+			reboundForceAcc += new Vector3( 0, 0, -(2*this.temp_speed.z)/(reboundFactor*deltaTSeconds) );
+			newPosition.z = this.position.z;
 			collisionTrigger = true;
-
-			newSpeed = new Vector3( newSpeed.x, newSpeed.y, -newSpeed.z );
 		}
+		if( collisionTrigger ){
+			internalForces.Add( reboundForceAcc*this.mass );
+		}
+
+		this.temp_speed = (newPosition-this.position)/deltaTSeconds;
+		this.position = newPosition;
 
 		// Viscosity
-		foreach( PhysicsObjectGraphics neighbor in neighbors ){
+		/*foreach( PhysicsObjectGraphics neighbor in neighbors ){
 			internalForces.Add( viscosity( neighbor, deltaTSeconds, world.NeighborhoodRadius ) );
-		}
+		}*/
 
 		// Collision to other objects
 		/*foreach( PhysicsObjectGraphics neighbor in neighbors ){
@@ -98,19 +126,21 @@ public class PhysicsObject : AbstractObject {
 			}
 		}*/
 
-		if( !collisionTrigger ){
+		/*if( !collisionTrigger ){
 			// Update info : new one
 			this.temp_speed = newSpeed;
 			this.position = newPosition;
-			this.boundingBox.Position = newPosition;
+			//this.boundingBox.Position = newPosition;
 		}
 		else{
 			// Update info : 0
-			Vector3 reboundForceAcc = new Vector3(0,0,0);
-			reboundForceAcc += newSpeed/(reboundFactor*deltaTSeconds);
 			internalForces.Add( reboundForceAcc*this.mass );
-			this.temp_speed = new Vector3(0,0,0);
-		}
+			//this.temp_speed = new Vector3(0,0,0);
+		}*/
+
+		this.temp_speed = newSpeed;
+		//this.temp_speed = (newPosition-this.position)/deltaTSeconds;
+		//this.position = newPosition;
 	}
 
 	public void setPosition(Vector3 position){
@@ -138,10 +168,10 @@ public class PhysicsObject : AbstractObject {
 
 	public List<PhysicsObjectGraphics> Neighbors {
 		get {
-			return neighbors;
+			return currentNeighbors;
 		}
 		set {
-			neighbors = value;
+			currentNeighbors = value;
 		}
 	}
 
@@ -163,6 +193,17 @@ public class PhysicsObject : AbstractObject {
 			}
 		}
 		return new Vector3();
+	}
+
+	Vector3 center( List<PhysicsObjectGraphics> neighbors ){
+		if( neighbors.Count > 0 ){
+			Vector3 result = neighbors[0].PhysicsObj.getPosition();
+			for( int i = 1; i < neighbors.Count; i++ ){
+				result+=neighbors[i].PhysicsObj.getPosition();
+			}
+			return result;
+		}
+		return this.position;
 	}
 
 	/*Vector3 spring( PhysicsObjectGraphics neighbor, float deltaSeconds, float neighborhoodRadius ){

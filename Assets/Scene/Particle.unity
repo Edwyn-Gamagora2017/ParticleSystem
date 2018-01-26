@@ -137,7 +137,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PhysicsObjPrefab: {fileID: 1434418601584960, guid: 813cd431bd740cd429fc4535ac0a3368,
     type: 2}
-  createObjects: 200
+  createObjects: 300
 --- !u!4 &54119599
 Transform:
   m_ObjectHideFlags: 0

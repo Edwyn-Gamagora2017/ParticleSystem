@@ -39,7 +39,7 @@ public class WorldManager : MonoBehaviour {
 	void Start () {
 		objects = new List<PhysicsObjectGraphics>();
 		worldDimension = transform.localScale;
-		gridDimension = worldDimension/20;
+		gridDimension = worldDimension/50f;
 		neighborhoodRadius = gridDimension.x;
 
 		// Create random
@@ -69,7 +69,7 @@ public class WorldManager : MonoBehaviour {
 			List<PhysicsObjectGraphics> neighbors = neighborhood( obj, hashCapacity, gridDimension, neighborhoodRadius );
 			obj.PhysicsObj.Neighbors = neighbors;
 
-			obj.DensityFactor = obtainDensity( obj, neighbors, neighborhoodRadius );
+			obj.DensityFactor = obtainDensity( obj.PhysicsObj, neighbors, neighborhoodRadius, 2f );
 		}
 	}
 
@@ -134,25 +134,41 @@ public class WorldManager : MonoBehaviour {
 	}
 
 	bool isNeighbor( Vector3 aPos, Vector3 bPos, float radius ){
-		return (aPos - bPos).magnitude <= radius;
+		return (aPos - bPos).magnitude < radius;
 	}
 
-	float obtainDensity( PhysicsObjectGraphics obj, List<PhysicsObjectGraphics> neighbors, float radius ){
+	float obtainDensity( PhysicsObject obj, List<PhysicsObjectGraphics> neighbors, float radius, float power ){
 		float density = 0;
 		foreach( PhysicsObjectGraphics neighbor in neighbors ){
-			density += Mathf.Pow( 1f-(( obj.PhysicsObj.getPosition()-neighbor.PhysicsObj.getPosition() ).magnitude/radius), 2f );
+			density += Mathf.Pow( 1f-(( obj.getPosition()-neighbor.PhysicsObj.getPosition() ).magnitude/radius), power );
 		}
-		return Mathf.Sqrt( density );
-
-		/*float dist = 0;
-		foreach( PhysicsObjectGraphics neighbor in neighbors ){
-			dist += ( obj.getPosition()-neighbor.PhysicsObj.getPosition() ).magnitude;
-		}
-
-		return dist/(float)neighbors.Count;*/
+		return Mathf.Pow( density, 1/power );
 	}
 
-	public float obtainDensity( PhysicsObjectGraphics obj, List<PhysicsObjectGraphics> neighbors ){
-		return obtainDensity( obj, neighbors, neighborhoodRadius );
+	public float obtainP( PhysicsObject obj, List<PhysicsObjectGraphics> neighbors, float power ){
+		float density = 0;
+		foreach( PhysicsObjectGraphics neighbor in neighbors ){
+			density += Mathf.Pow( 1f-(( obj.getPosition()-neighbor.PhysicsObj.getPosition() ).magnitude/neighborhoodRadius), power );
+		}
+		return density;
+	}
+
+	public float obtainDensity( PhysicsObject obj, List<PhysicsObjectGraphics> neighbors, float power ){
+		return obtainDensity( obj, neighbors, neighborhoodRadius, power );
+	}
+
+	public Vector3 densityRelaxation( Vector3 objPos, Vector3 neighborPos, float densityStatus, float densityStatusNear, float deltaSeconds ){
+		Vector3 diffPosition = (neighborPos-objPos);
+
+		float influence = 1f-(diffPosition.magnitude/this.neighborhoodRadius);
+		//if( influence < 0 ) influence = 0;
+		/*if(diffPosition.magnitude/this.neighborhoodRadius > 1 ){
+			Debug.LogError( diffPosition.magnitude/this.neighborhoodRadius - 1 );
+			Debug.Log( densityStatus );
+			Debug.Log( densityStatusNear );
+			Debug.Log( influence );
+			Debug.Log( deltaSeconds );
+		}*/
+		return deltaSeconds*deltaSeconds*(densityStatus*influence + densityStatusNear*influence*influence)*diffPosition.normalized;
 	}
 }
