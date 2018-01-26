@@ -15,6 +15,7 @@ public class WorldManager : MonoBehaviour {
 	Dictionary< int, List< PhysicsObjectGraphics > > hashObjects;
 	int hashCapacity;
 	Vector3 gridDimension;
+	float neighborhoodRadius;
 
 	public List<PhysicsObjectGraphics> Objects {
 		get {
@@ -28,11 +29,18 @@ public class WorldManager : MonoBehaviour {
 		}
 	}
 
+	public float NeighborhoodRadius {
+		get {
+			return neighborhoodRadius;
+		}
+	}
+
 	// Use this for initialization
 	void Start () {
 		objects = new List<PhysicsObjectGraphics>();
 		worldDimension = transform.localScale;
 		gridDimension = worldDimension/20;
+		neighborhoodRadius = gridDimension.x;
 
 		// Create random
 		for(int i=0;i<createObjects;i++){
@@ -51,8 +59,6 @@ public class WorldManager : MonoBehaviour {
 	}
 
 	void FixedUpdate () {
-		float radius = gridDimension.x;
-
 		foreach( PhysicsObjectGraphics obj in objects ){
 			obj.ApplyPhysics();
 		}
@@ -60,10 +66,10 @@ public class WorldManager : MonoBehaviour {
 		fillHash( hashCapacity, gridDimension );
 
 		foreach( PhysicsObjectGraphics obj in objects ){
-			List<PhysicsObjectGraphics> neighbors = neighborhood( obj, hashCapacity, gridDimension, radius );
+			List<PhysicsObjectGraphics> neighbors = neighborhood( obj, hashCapacity, gridDimension, neighborhoodRadius );
 			obj.PhysicsObj.Neighbors = neighbors;
 
-			obj.DensityFactor = obtainDensity( obj, neighbors, radius );
+			obj.DensityFactor = obtainDensity( obj, neighbors, neighborhoodRadius );
 		}
 	}
 
@@ -144,5 +150,9 @@ public class WorldManager : MonoBehaviour {
 		}
 
 		return dist/(float)neighbors.Count;*/
+	}
+
+	public float obtainDensity( PhysicsObjectGraphics obj, List<PhysicsObjectGraphics> neighbors ){
+		return obtainDensity( obj, neighbors, neighborhoodRadius );
 	}
 }
