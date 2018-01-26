@@ -23,8 +23,9 @@ public class PhysicsObject : AbstractObject {
 
 	List<PhysicsObjectGraphics> currentNeighbors;
 
-	float densityThreshold =100f;
-	float densityFactor = 0.2f;
+	public float densityThreshold = 130f;
+	public float densityFactor = 0.2f;
+	float densityFactorNear = 0f;
 
 	public PhysicsObject( float mass, float radius, Vector3 startPosition, Vector3 startSpeed, CubeStaticObject boundingBox )
 	: base( startPosition ){
@@ -70,20 +71,25 @@ public class PhysicsObject : AbstractObject {
 		//Vector3 newPosition = this.position + deltaTSeconds*deltaTSeconds*newAcceleration;
 
 		// Internal Repulsion and Attraction
-		Vector3 accumulatedTranslation = new Vector3(0,0,0);
+		Vector3 accumulatedPosition = new Vector3(0,0,0);
 		float densityStatus = world.obtainP(this,currentNeighbors,2);
 		float densityStatusNear = world.obtainP(this,currentNeighbors,3);
 		foreach( PhysicsObjectGraphics neighbor in currentNeighbors ){
-			accumulatedTranslation += world.densityRelaxation(
+			accumulatedPosition += world.densityRelaxation(
 				newPosition,
 				neighbor.PhysicsObj.getPosition(),
 				densityFactor*(densityStatus-densityThreshold),
-				densityFactor*densityStatusNear,
+				densityFactorNear*densityStatusNear,
 				deltaTSeconds
 			);
 		}
-		//Debug.Log( accumulatedTranslation );
-		newPosition += accumulatedTranslation;
+		if( accumulatedPosition.x != 0 && accumulatedPosition.y != 0 ){
+//			Debug.LogError( accumulatedPosition );
+		}
+		//newPosition += accumulatedTranslation;
+
+		this.temp_speed = (newPosition-this.position)/deltaTSeconds;
+		newPosition += accumulatedPosition;
 
 		// Calculate Collision
 		bool collisionTrigger = false;
@@ -109,7 +115,7 @@ public class PhysicsObject : AbstractObject {
 			internalForces.Add( reboundForceAcc*this.mass );
 		}
 
-		this.temp_speed = (newPosition-this.position)/deltaTSeconds;
+		//this.temp_speed = (newPosition-this.position)/deltaTSeconds;
 		this.position = newPosition;
 
 		// Viscosity
@@ -138,7 +144,7 @@ public class PhysicsObject : AbstractObject {
 			//this.temp_speed = new Vector3(0,0,0);
 		}*/
 
-		this.temp_speed = newSpeed;
+		//this.temp_speed = newSpeed;
 		//this.temp_speed = (newPosition-this.position)/deltaTSeconds;
 		//this.position = newPosition;
 	}

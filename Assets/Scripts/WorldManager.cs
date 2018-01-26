@@ -162,13 +162,13 @@ public class WorldManager : MonoBehaviour {
 
 		float influence = 1f-(diffPosition.magnitude/this.neighborhoodRadius);
 		//if( influence < 0 ) influence = 0;
-		/*if(diffPosition.magnitude/this.neighborhoodRadius > 1 ){
-			Debug.LogError( diffPosition.magnitude/this.neighborhoodRadius - 1 );
-			Debug.Log( densityStatus );
+		//if(diffPosition.magnitude/this.neighborhoodRadius > 1 ){
+			//Debug.LogError( diffPosition.magnitude/this.neighborhoodRadius - 1 );
+/*			Debug.Log( densityStatus );
 			Debug.Log( densityStatusNear );
 			Debug.Log( influence );
 			Debug.Log( deltaSeconds );
-		}*/
-		return deltaSeconds*deltaSeconds*(densityStatus*influence + densityStatusNear*influence*influence)*diffPosition.normalized;
+*/		//}
+		return deltaSeconds*deltaSeconds*(densityStatus*influence)*diffPosition.normalized;// + densityStatusNear*influence*influence)*diffPosition.normalized;
 	}
 }
