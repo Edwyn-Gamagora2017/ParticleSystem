@@ -39,7 +39,7 @@ public class WorldManager : MonoBehaviour {
 	void Start () {
 		objects = new List<PhysicsObjectGraphics>();
 		worldDimension = transform.localScale;
-		gridDimension = worldDimension/50f;
+		gridDimension = PhysicsObjPrefab.transform.localScale*1.5f;
 		neighborhoodRadius = gridDimension.x;
 
 		// Create random
@@ -164,7 +164,7 @@ public class WorldManager : MonoBehaviour {
 		//if( influence < 0 ) influence = 0;
 		//if(diffPosition.magnitude/this.neighborhoodRadius > 1 ){
 			//Debug.LogError( diffPosition.magnitude/this.neighborhoodRadius - 1 );
-/*			Debug.Log( densityStatus );
+/*			Debug.LogError( densityStatus );
 			Debug.Log( densityStatusNear );
 			Debug.Log( influence );
 			Debug.Log( deltaSeconds );
