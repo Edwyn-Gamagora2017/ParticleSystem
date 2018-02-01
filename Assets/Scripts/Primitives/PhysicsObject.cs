@@ -23,8 +23,8 @@ public class PhysicsObject : AbstractObject {
 
 	List<PhysicsObjectGraphics> currentNeighbors;
 
-	public float densityThreshold = 130f;
-	public float densityFactor = 0.2f;
+	public float densityThreshold = 1300f;
+	public float densityFactor = 0.3f;
 	float densityFactorNear = 0f;
 
 	public PhysicsObject( float mass, float radius, Vector3 startPosition, Vector3 startSpeed, CubeStaticObject boundingBox )
