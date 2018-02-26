@@ -16,16 +16,16 @@ public class PhysicsObject : AbstractObject {
 	CubeStaticObject boundingBox;
 
 	//public static Vector3 gravityAcc = new Vector3(0f,-9.8f,0f);
-	public static Vector3 gravityAcc = new Vector3(0f,-5f,0f);
+	public static Vector3 gravityAcc = new Vector3(0f,-0.8f,0f);
 
 	float reboundFactor = 1.5f;
 	List<Vector3> internalForces;
 
 	List<PhysicsObjectGraphics> currentNeighbors;
 
-	public float densityThreshold = 1300f;
-	public float densityFactor = 0.3f;
-	float densityFactorNear = 0f;
+	public float densityThreshold = 1250f;
+	public float densityFactor = 0.33f;
+	float densityFactorNear = 0.1f;
 
 	public PhysicsObject( float mass, float radius, Vector3 startPosition, Vector3 startSpeed, CubeStaticObject boundingBox )
 	: base( startPosition ){

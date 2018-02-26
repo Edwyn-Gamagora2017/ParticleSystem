@@ -36,6 +36,8 @@ public class WorldManager : MonoBehaviour {
 	}
 
 	// Use this for initialization
+	int createIt = 0;
+	int createItMax = 50;
 	void Start () {
 		objects = new List<PhysicsObjectGraphics>();
 		worldDimension = transform.localScale;
@@ -43,7 +45,7 @@ public class WorldManager : MonoBehaviour {
 		neighborhoodRadius = gridDimension.x;
 
 		// Create random
-		for(int i=0;i<createObjects;i++){
+		/*for(int i=0;i<createObjects;i++){
 			GameObject g = Instantiate( PhysicsObjPrefab );
 			g.transform.position = new Vector3( Random.Range( -worldDimension.x/2f, worldDimension.x/2f ), worldDimension.y/2f, 0 );
 			//g.transform.position = new Vector3( 0, worldDimension.y/2f, 0 );
@@ -52,13 +54,29 @@ public class WorldManager : MonoBehaviour {
 			objects.Add( obj );
 			obj.World = this;
 			obj.PhysicsObj.setPosition( g.transform.position );
-		}
+		}*/
 
-		hashCapacity = Mathf.Max( objects.Count/10 , 1 );
+		hashCapacity = Mathf.Max( createObjects/10 , 1 );
 		fillHash( hashCapacity, gridDimension );
 	}
 
 	void FixedUpdate () {
+		// Create particles
+		if( createIt < createItMax ){
+			// Create random
+			for(int i=0;i<createObjects/createItMax;i++){
+				GameObject g = Instantiate( PhysicsObjPrefab );
+				g.transform.position = new Vector3( Random.Range( -worldDimension.x/2f, worldDimension.x/2f ), worldDimension.y/2f, 0 );
+				//g.transform.position = new Vector3( 0, worldDimension.y/2f, 0 );
+
+				PhysicsObjectGraphics obj = g.GetComponent<PhysicsObjectGraphics>();
+				objects.Add( obj );
+				obj.World = this;
+				obj.PhysicsObj.setPosition( g.transform.position );
+			}
+			createIt++;
+		}
+
 		foreach( PhysicsObjectGraphics obj in objects ){
 			obj.ApplyPhysics();
 		}
@@ -169,6 +187,6 @@ public class WorldManager : MonoBehaviour {
 			Debug.Log( influence );
 			Debug.Log( deltaSeconds );
 */		//}
-		return deltaSeconds*deltaSeconds*(densityStatus*influence)*diffPosition.normalized;// + densityStatusNear*influence*influence)*diffPosition.normalized;
+		return deltaSeconds*deltaSeconds*(densityStatus*influence + densityStatusNear*influence*influence)*diffPosition.normalized;
 	}
 }
